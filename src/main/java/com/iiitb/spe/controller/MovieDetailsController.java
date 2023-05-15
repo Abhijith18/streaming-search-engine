@@ -7,12 +7,17 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
+import com.iiitb.spe.JwtUtil.TokenManager;
+import com.iiitb.spe.clientmodels.Movie;
 import com.iiitb.spe.models.Movie_ID;
 import com.iiitb.spe.models.User_Login;
 import com.iiitb.spe.models.NewReleases;
 import com.iiitb.spe.repositories.MovieDetailsRepository;
 import com.iiitb.spe.repositories.NewReleasesRepository;
 import com.iiitb.spe.repositories.UserLoginRepository;
+import com.iiitb.spe.service.NewReleasesService;
+import com.iiitb.spe.service.UserLoginService;
+//import com.sun.org.apache.xpath.internal.operations.Bool;
 import com.twilio.Twilio;
 import com.twilio.exception.TwilioException;
 import com.twilio.rest.api.v2010.account.Message;
@@ -20,32 +25,49 @@ import com.twilio.type.PhoneNumber;
 import org.apache.tomcat.util.json.JSONParser;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import com.iiitb.spe.service.MovieDetailsService;
 import com.iiitb.spe.service.MyListDetailsService;
-
+//import com.iiitb.spe.repositories.MovieDetailsRepository
 import com.iiitb.spe.models.Movie_Details;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+
 @CrossOrigin(origins = "http://localhost:4200")
 
 @RestController
-public class MovieDetailsController {
+@Configuration
+@ComponentScan("com.iiitb.spe")
+@Controller
+//@ComponentScan("com.iiitb.spe.repositories")
+public class MovieDetailsController{
+
+    private static final Logger logger = LoggerFactory.getLogger(MovieDetailsController.class);
+
     @Autowired
     private MovieDetailsService movieDetailsService;
+
     @Autowired
     private MyListDetailsService mylistdetailsservice;
+
     @Autowired
-    private NewReleasesRepository newReleasesRepository;
+    private NewReleasesService newReleasesService;
     @Autowired
-    private MovieDetailsRepository movieDetailsRepository;
-    @Autowired
-    private UserLoginRepository userLoginRepository;
+    private UserLoginService userLoginService;
+
     @GetMapping("/Movie")
-    public ResponseEntity<Object> moviedetails(@RequestParam("movie_name") String movie_name){
+    public ResponseEntity<Movie_Details> moviedetails(@RequestParam("movie_name") String movie_name){
         System.out.println("fdfdfdfdfdsdfd");
         System.out.println(movie_name);
+        logger.info("Info message");
         Movie_Details md=movieDetailsService.findByMovieName(movie_name);
 
         if (md != null) {
@@ -53,16 +75,18 @@ public class MovieDetailsController {
         } else {
             return ResponseEntity.notFound().build();
         }
-    
+
     }
 
     @GetMapping("/newreleases")
     public  List<Movie_Details> newreleases(@RequestParam String user_id){
         System.out.println(user_id);
-        List<NewReleases> newReleases=newReleasesRepository.findByID(user_id);
+        List<NewReleases> newReleases=newReleasesService.findByID(user_id);
+        System.out.println(newReleases);
         List<Movie_Details> mld = new ArrayList<Movie_Details>();
         for (int i=0; i<newReleases.size(); i++)
         {
+            System.out.println("new");
             mld.add(movieDetailsService.findByMovieName(newReleases.get(i).getMovie_name()));
             System.out.println(movieDetailsService.findByMovieName(newReleases.get(i).getMovie_name()).getMovie_name());
 
@@ -70,36 +94,37 @@ public class MovieDetailsController {
         return mld;
     }
     @DeleteMapping("/deletenewreleases")
-    public ResponseEntity<Void> deletenewreleases(@RequestParam int id){
-        newReleasesRepository.deletenewreleases(id);
+    public ResponseEntity<Void> deletenewreleases(@RequestParam String id){
+        newReleasesService.deletenewreleases(id);
         return ResponseEntity.ok().build();
     }
     @PostMapping("/addnewrelease")
-    public int  addnewrelease(@RequestBody Movie_Details movie_details){
-        Movie_Details md=movieDetailsRepository.findByMovieName(movie_details.getMovie_name());
+    public Integer  addnewrelease(@RequestBody Movie_Details movie_details){
+        Movie_Details md=movieDetailsService.findByMovieName(movie_details.getMovie_name());
         if (md!=null)
             return 0;
-        movieDetailsRepository.save(movie_details);
-        List<User_Login> ul=userLoginRepository.allusers();
+        movieDetailsService.save(movie_details);
+        List<User_Login> ul=userLoginService.allusers();
         for (User_Login user_login:ul){
-            newReleasesRepository.save(new NewReleases(user_login.getPhone_number(),movie_details.getMovie_name()));
+            newReleasesService.save(new NewReleases(movie_details.getMovie_name(), Integer.toString(user_login.getId())));
         }
 
         return 1;
     }
-    @PostMapping("/changemoviedetails")
-    public int  changemoviedetails(@RequestBody Movie_Details movie_details){
-        Movie_Details md=movieDetailsRepository.findByMovieName(movie_details.getMovie_name());
-        if (md==null)
-            return 0;
-        md.setMovie_img(movie_details.getMovie_img());
-        md.setAbout(movie_details.getAbout());
-        md.setAbout(movie_details.getAbout());
-        md.setOtt_platforms(movie_details.getOtt_platforms());
-        md.setRelease_date(movie_details.getRelease_date());
-        movieDetailsRepository.save(md);
-        return 1;
-    }
+
+@PostMapping("/changemoviedetails")
+public Integer  changemoviedetails(@RequestBody Movie_Details movie_details){
+    Movie_Details md=movieDetailsService.findByMovieName(movie_details.getMovie_name());
+    if (md==null)
+        return 0;
+    md.setMovie_img(movie_details.getMovie_img());
+    md.setAbout(movie_details.getAbout());
+    md.setAbout(movie_details.getAbout());
+    md.setOtt_platforms(movie_details.getOtt_platforms());
+    md.setRelease_date(movie_details.getRelease_date());
+    movieDetailsService.save(md);
+    return 1;
+}
     @PostMapping("/MyList")
     public ResponseEntity<Object> mylist_details(@RequestParam(value="user_id") String user_id){
         System.out.println("fdfdfdfdfdsdfd");
@@ -109,7 +134,7 @@ public class MovieDetailsController {
         for (int i=0; i<md.size(); i++)
         {
             mld.add(movieDetailsService.findByMovieName(md.get(i).getMovie_name()));
-            System.out.println(movieDetailsService.findByMovieName(md.get(i).getMovie_name()).getMovie_name());
+//            System.out.println(movieDetailsService.findByMovieName(md.get(i).getMovie_name()).getMovie_name());
 
         }
         if (mld != null) {
@@ -151,14 +176,6 @@ public class MovieDetailsController {
         System.out.println("adder");
         System.out.println(movie_name);
         mylistdetailsservice.addMovieMyList(movie_name, user_id);
-        List<Movie_Details> mld = new ArrayList<Movie_Details>();
-//        if (mld != null) {
-//            return ResponseEntity.ok(mld);
-//        } else {
-//            return ResponseEntity.notFound().build();
-//        }
-//        Object str = new Object();
-//        str = "hello";
         return true;
     }
 }

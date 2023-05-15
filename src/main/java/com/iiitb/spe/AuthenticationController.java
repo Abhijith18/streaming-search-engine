@@ -27,7 +27,6 @@ public class AuthenticationController {
     private final AuthenticationService authenticationService;
     @Autowired
     private final MovieDetailsService movieDetailsService;
-    private final TokenManager tokenManager;
     @ModelAttribute
     public void setResponseHeader(HttpServletResponse response) {
         response.setHeader("Access-Control-Allow-Origin", "*");
@@ -63,9 +62,14 @@ public class AuthenticationController {
     @Autowired
     private JwtAuthenticationEntryPoint unauthorizedHandler;
 
+    @Autowired
+    private final TokenManager tokenManager;
+
+
+
     @Bean
     public JwtFilter authenticationJwtTokenFilter() {
-        return new JwtFilter(tokenManager, userDetailsService);
+        return new JwtFilter(userDetailsService, tokenManager);
     }
 
     @Bean
@@ -94,8 +98,10 @@ public class AuthenticationController {
                 .exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
                 .authorizeRequests().antMatchers("/user/verifyOTP").permitAll()
-                .antMatchers("/user/sendOTP").permitAll()
-                .anyRequest().authenticated();
+                .antMatchers("/user/sendOTP").permitAll().and()
+                .authorizeRequests().antMatchers("/addnewrelease").permitAll().and()
+                .authorizeRequests().antMatchers("/changemoviedetails").permitAll().and()
+                .authorizeRequests().anyRequest().authenticated();
 
         http.authenticationProvider(authenticationProvider());
 

@@ -16,10 +16,10 @@ import java.util.List;
 @Service
 public class JwtUserDetailsService implements UserDetailsService {
 
-    private final MovieDetailsRepository pr;
-    public JwtUserDetailsService(MovieDetailsRepository  pr){
-        this.pr = pr;
-    }
+//    private final MovieDetailsRepository pr;
+//    public JwtUserDetailsService(MovieDetailsRepository  pr){
+//        this.pr = pr;
+//    }
     @Override
     public UserDetails loadUserByUsername(String mobile) throws UsernameNotFoundException {
         List<GrantedAuthority> authList = new ArrayList<GrantedAuthority>(2);

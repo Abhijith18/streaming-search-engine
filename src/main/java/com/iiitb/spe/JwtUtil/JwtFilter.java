@@ -2,6 +2,9 @@ package com.iiitb.spe.JwtUtil;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,14 +17,17 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-@Component
+@Configuration
+@ComponentScan("com.iiitb.spe.JwtUtil")
+
 public class JwtFilter extends OncePerRequestFilter {
     @Autowired
     private JwtUserDetailsService userDetailsService;
+
     @Autowired
     private TokenManager tokenManager;
 
-    public JwtFilter(TokenManager tokenManager, JwtUserDetailsService userDetailsService) {
+    public JwtFilter(JwtUserDetailsService userDetailsService, TokenManager tokenManager) {
         this.tokenManager = tokenManager;
         this.userDetailsService = userDetailsService;
     }
@@ -38,7 +44,7 @@ public class JwtFilter extends OncePerRequestFilter {
         if (tokenHeader != null) {
             if (tokenHeader.length() != 0){
            // token = tokenHeader.substring(10);
-            token = tokenHeader;
+            token = tokenHeader.substring(7);
             System.out.println(token);
             //System.out.println(tokenHeader);
             try {

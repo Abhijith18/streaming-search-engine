@@ -5,7 +5,10 @@ import com.iiitb.spe.models.User_Login;
 import com.iiitb.spe.repositories.UserLoginRepository;
 import com.iiitb.spe.service.MovieDetailsService;
 import com.iiitb.spe.JwtUtil.models.JwtResponseModel;
+import com.iiitb.spe.service.UserLoginService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,18 +19,23 @@ import java.util.Objects;
 
 @CrossOrigin(origins = "*")
 @RestController
+@Configuration
+@ComponentScan("com.iiitb.spe")
 
 public class JwtController {
 
+    @Autowired
     private  final MovieDetailsService movieDetailsService;
 
-    private final UserLoginRepository userlogin;
+    @Autowired
+    private final UserLoginService userLoginService;
+    @Autowired
     private final AuthenticationService authenticationService;
-    public JwtController(AuthenticationService authenticationService, MovieDetailsService movieDetailsService, UserLoginRepository userlogin)
+    public JwtController(AuthenticationService authenticationService, MovieDetailsService movieDetailsService, UserLoginService userLoginService)
     {
         this.authenticationService = authenticationService;
         this.movieDetailsService=movieDetailsService;
-        this.userlogin = userlogin;
+        this.userLoginService = userLoginService;
     }
     @Autowired
     private JwtUserDetailsService userDetailsService;
@@ -67,15 +75,15 @@ public class JwtController {
     @Transactional
     public int get_userID(@RequestParam String phone_number) {
 
-            User_Login user = userlogin.getIDbyPhone(phone_number);
+            User_Login user = userLoginService.getIDbyPhone(phone_number);
             if (user != null)
             {
                 return user.getId();
             }
             else
             {
-                userlogin.addUser(phone_number);
-                return userlogin.getIDbyPhone(phone_number).getId();
+                userLoginService.addUser(phone_number);
+                return userLoginService.getIDbyPhone(phone_number).getId();
             }
     }
 }

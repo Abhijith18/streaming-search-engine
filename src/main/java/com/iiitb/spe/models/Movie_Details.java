@@ -1,5 +1,8 @@
 package com.iiitb.spe.models;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.iiitb.spe.clientmodels.Movie;
 import org.hibernate.annotations.Type;
 import javax.persistence.*;
 import java.sql.Date;
@@ -26,6 +29,16 @@ public class Movie_Details {
     @Column(name = "about")
     private String about;
 
+    public Movie_Details(String movie_name, String release_date, String ott_platforms, String genre, String movie_img, String about) {
+        this.movie_name = movie_name;
+        this.release_date = release_date;
+        this.ott_platforms = ott_platforms;
+        this.genre = genre;
+        this.movie_img = movie_img;
+        this.about = about;
+    }
+
+    public Movie_Details(){}
 
     public String getGenre() {
         return genre;
@@ -47,8 +60,8 @@ public class Movie_Details {
         return id;
     }
 
-    public void setId(String id) {
-        id = id;
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getMovie_name() {
@@ -82,8 +95,8 @@ public class Movie_Details {
     public void setOtt_platforms(String ott_platforms) {
         this.ott_platforms = ott_platforms;
     }
-    public String getAllDetails(){
-        return "Movie is " + this.movie_name + ".Release date is "  + this.release_date + ".ott-platfroms "+this.ott_platforms;
-    }
+//    public String getAllDetails(){
+//        return "Movie is " + this.movie_name + ".Release date is "  + this.release_date + ".ott-platfroms "+this.ott_platforms;
+//    }
 }
 

@@ -17,9 +17,9 @@ public class NewReleases {
         return id;
     }
 
-    public NewReleases(String phone_number, String movie_name) {
-        this.phone_number = phone_number;
+    public NewReleases(String movie_name, String phone_number) {
         this.movie_name = movie_name;
+        this.phone_number = phone_number;
     }
     public NewReleases() {
         // default constructor
